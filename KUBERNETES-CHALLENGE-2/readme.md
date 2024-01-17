@@ -17,19 +17,19 @@ To fix the issues with the controlplane node, I performed the following steps:
 1. Before we can execute any `kubectl` commands, we must fix the kubeconfig. The server port is incorrect and should be `6443`. Edit this in `vim` and save.
 
         ```bash
-        vim .kube/config
+      vim .kube/config
         ```
  Change the port and set it to the correct port `6443`, save and exit vim.
  
 2. Replaced `ca-authority.crt` with `ca.crt `in the `kube-apiserver` manifest file:
         ```bash
-        vim /etc/kubernetes/manifests/kube-apiserver.yaml
+             vim /etc/kubernetes/manifests/kube-apiserver.yaml
         ```
 
-        Change the following line to refer to the correct certificate file, save and exit vim.
+   Change the following line to refer to the correct certificate file, save and exit vim.
 
         ```yaml
-            - --client-ca-file=/etc/kubernetes/pki/ca-authority.crt
+   - --client-ca-file=/etc/kubernetes/pki/ca-authority.crt
         ```
     as there is no ca-authority.crt file in /etc/kubernetes/pki directory
 
