@@ -1,70 +1,84 @@
 # Challenge 2 - Troubleshooting and Deploying Objects on a 2-Node Kubernetes Cluster
 
-This directory contains the solution to the Challenge 2 of the KodeKloud Kubernetes Challenges. The challenge consists of troubleshooting and fixing a broken 2-Node Kubernetes cluster and deploying objects based on the given architecture diagram.
+This directory contains the solution to Challenge 2 of the KodeKloud Kubernetes Challenges. The challenge involves troubleshooting and fixing a broken 2-Node Kubernetes cluster, followed by deploying objects based on the provided architecture diagram.
 
-find the lab [here](https://kodekloud.com/topic/lab-kubernetes-challenge-2/)
+Access the lab instructions [here](https://kodekloud.com/topic/lab-kubernetes-challenge-2/).
 
 ## Architecture Diagram
 
-The architecture diagram for this challenge can be found in the `challenge2-arch.png` file.
+Refer to the architecture diagram in the `challenge2-arch.png` file:
 
 ![Challenge 2 Architecture Diagram](./Challenge-2-arch.png)
 
-## Solution
+## Troubleshooting and Solution Steps
 
-To fix the issues with the controlplane node, I performed the following steps:
+### Controlplane Node
 
-1. Before we can execute any `kubectl` commands, we must fix the kubeconfig. The server port is incorrect and should be `6443`. Edit this in `vim` and save.
+1. **Fixing Kubeconfig:**
+    Before executing any `kubectl` commands, correct the kubeconfig file. Edit it using:
 
-        ```bash
-      vim .kube/config
-        ```
- Change the port and set it to the correct port `6443`, save and exit vim.
- 
-2. Replaced `ca-authority.crt` with `ca.crt `in the `kube-apiserver` manifest file:
-        ```bash
-             vim /etc/kubernetes/manifests/kube-apiserver.yaml
-        ```
+    ```bash
+    vim .kube/config
+    ```
+    Change the server port to `6443`, save, and exit vim.
 
-   Change the following line to refer to the correct certificate file, save and exit vim.
+2. **Update `kube-apiserver` Manifest:**
+    Replace `ca-authority.crt` with `ca.crt` in the `kube-apiserver` manifest file:
 
-        ```yaml
-   - --client-ca-file=/etc/kubernetes/pki/ca-authority.crt
-        ```
-    as there is no ca-authority.crt file in /etc/kubernetes/pki directory
+    ```bash
+    vim /etc/kubernetes/manifests/kube-apiserver.yaml
+    ```
+    Update the following line to refer to the correct certificate file, then save and exit vim.
 
-3. Restarted the kubelet service using this command:
+    ```yaml
+    - --client-ca-file=/etc/kubernetes/pki/ca-authority.crt
+    ```
+    Note: There is no `ca-authority.crt` file in the `/etc/kubernetes/pki` directory.
+
+3. **Restart kubelet Service:**
+    Restart the kubelet service:
+
     ```bash
     systemctl restart kubelet
     ```
 
-4. Fix the image of the `coredns` deployment
+### CoreDNS Deployment
 
-```bash
-kubectl edit deployment -n kube-system coredns
-```
-and change the image to ``registry.k8s.io/coredns/coredns:v1.8.6``
+4. **Fix `coredns` Deployment Image:**
+    Edit the `coredns` deployment:
 
-Fix `node01` node by Allowing scheduling of pods on it
+    ```bash
+    kubectl edit deployment -n kube-system coredns
+    ```
+    Change the image to `registry.k8s.io/coredns/coredns:v1.8.6`.
 
-```bash
-kubectl uncordon node01
-```
+### Node01 Node
 
-Finally, I copied all images from the `/media` directory on the `controlplane` node to the `/web` directory on `node01` 
+5. **Allow Scheduling on `node01`:**
+    Enable scheduling of pods on `node01`:
 
-```bash
-scp /media/* node01:/web
-```
+    ```bash
+    kubectl uncordon node01
+    ```
 
-The following files were used to deploy the Kubernetes objects:
+6. **Copy Images from Controlplane to Node01:**
+    Copy all images from `/media` on the controlplane node to `/web` on `node01`:
 
-- `data-pv.yaml`: YAML file to define the Persistent Volumes for storing the image data.
-- `data-pvc.yaml`: YAML file to define the Persistent Volume Claims for the image data.
-- `gop-file-server-pod.yaml`: YAML file to define the file server pod that serves the image data.
-- `gop-fs-service.yaml`: YAML file to define the service that exposes the file server pod.
-## Architecture Diagram Solution
+    ```bash
+    scp /media/* node01:/web
+    ```
 
-This is the diagram after providing the right solution
+## Kubernetes Object Deployment
+
+The following YAML files were used to deploy Kubernetes objects:
+
+- `data-pv.yaml`: Persistent Volumes definition for storing image data.
+- `data-pvc.yaml`: Persistent Volume Claims definition for image data.
+- `gop-file-server-pod.yaml`: Pod definition for the file server serving image data.
+- `gop-fs-service.yaml`: Service definition exposing the file server pod.
+
+## Architecture Diagram - After Solution
+
+View the updated architecture diagram post-solution:
 
 ![Challenge 2 Architecture Diagram Solution](./K8S-challenge2-solution.png)
